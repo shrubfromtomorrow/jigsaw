@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RWCustom;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -56,6 +52,7 @@ namespace Jigsaw
             // Base container
             container = new FContainer();
             Futile.stage.AddChild(container);
+            container.SetPosition(0.01f, 0.01f);
 
             // Background
             backgroundSprite = new FSprite("Futile_White")
@@ -83,7 +80,7 @@ namespace Jigsaw
 
             Vector2 mousePos = Futile.mousePosition;
 
-            if (pieces != null)
+            if (container != null && pieces != null)
             {
                 // Determine/move held piece
                 if (heldPiece == null && Input.GetMouseButtonDown(0))
@@ -117,6 +114,7 @@ namespace Jigsaw
 
                 // Update sprite order (pieces first in list are towards front)
                 List<JigsawPiece> piecesToSort = [.. pieces];
+                piecesToSort = [.. piecesToSort.OrderByDescending(piece => container.GetChildIndex(piece.sprite))]; // Make sure most recently grabbed is at top
                 piecesToSort = [.. piecesToSort.OrderBy(x => x.group.Contains(heldPiece) ? 0 : 1).ThenBy(x => x.group.Count)];
                 foreach (var piece in piecesToSort)
                 {
@@ -126,6 +124,18 @@ namespace Jigsaw
 
             // Set for next frame
             lastMousePos = mousePos;
+
+            // Debug keybinds
+#if DEBUG
+            if (Input.GetKeyDown(KeyCode.F7))
+            {
+                ClearSprites();
+            }
+            else if (Input.GetKeyDown(KeyCode.F8))
+            {
+                Regenerate(5, 3);
+            }
+#endif
         }
 
         public void Destroy()

@@ -47,6 +47,7 @@ sealed class Plugin : BaseUnityPlugin
         if (jigsawCWT.TryGetValue(self, out var jigsaw))
         {
             jigsaw.Destroy();
+            jigsawCWT.Remove(self);
         }
     }
 

@@ -5,7 +5,7 @@ namespace Jigsaw
 {
     public class JigsawPiece
     {
-        private const float SNAP_DISTANCE = 5f;
+        private const float SNAP_DISTANCE = 20f;
 
         public JigsawPiece(JigsawContainer owner, int x, int y)
         {
@@ -58,7 +58,7 @@ namespace Jigsaw
             // This will include ourselves
             foreach (var piece in group.pieces)
             {
-                piece.pos = pos + amount;
+                piece.pos = piece.pos + amount;
                 piece.sprite.SetPosition(piece.pos);
             }
         }
@@ -83,19 +83,19 @@ namespace Jigsaw
                     {
                         if (x + 1 == other.x && y == other.y && Vector2.Distance(pos + RectSize * Vector2.right, other.pos) < SNAP_DISTANCE)
                         {
-                            Merge(other.pos - pos + RectSize * Vector2.right, other, other.group);
+                            Merge(other.pos - (pos + RectSize * Vector2.right), other, other.group);
                         }
                         else if (x - 1 == other.x && y == other.y && Vector2.Distance(pos + RectSize * Vector2.left, other.pos) < SNAP_DISTANCE)
                         {
-                            Merge(other.pos - pos + RectSize * Vector2.left, other, other.group);
+                            Merge(other.pos - (pos + RectSize * Vector2.left), other, other.group);
                         }
                         else if (x == other.x && y + 1 == other.y && Vector2.Distance(pos + RectSize * Vector2.up, other.pos) < SNAP_DISTANCE)
                         {
-                            Merge(other.pos - pos + RectSize * Vector2.up, other, other.group);
+                            Merge(other.pos - (pos + RectSize * Vector2.up), other, other.group);
                         }
                         else if (x == other.x && y - 1 == other.y && Vector2.Distance(pos + RectSize * Vector2.down, other.pos) < SNAP_DISTANCE)
                         {
-                            Merge(other.pos - pos + RectSize * Vector2.down, other, other.group);
+                            Merge(other.pos - (pos + RectSize * Vector2.down), other, other.group);
                         }
                     }
                 }

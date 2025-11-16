@@ -1,11 +1,11 @@
 ﻿{
-  "id": "testmod",
-  "name": "Test Mod",
-  "version": "0.1.0",
-  "authors": "Author",
-  "description": "Put a neat description here",
+  "id": "alduris.jigsaw",
+  "name": "Puzzle World",
+  "version": "1.0",
+  "authors": "Alduris",
+  "description": "The game is made of puzzles. You must solve it while you play.",
   "tags": [],
   "requirements": [],
   "requirements_names": [],
-  "checksum_override_version": false
+  "checksum_override_version": true
 }

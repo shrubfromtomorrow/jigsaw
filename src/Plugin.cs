@@ -29,7 +29,10 @@ sealed class Plugin : BaseUnityPlugin
     private void RainWorldGame_ctor(On.RainWorldGame.orig_ctor orig, RainWorldGame self, ProcessManager manager)
     {
         orig(self, manager);
-        jigsawCWT.Add(self, new JigsawContainer());
+        if (Options.JigsawImmediately && (!self.IsArenaSession || Options.DoArena))
+        {
+            jigsawCWT.Add(self, new JigsawContainer());
+        }
     }
 
     private void RainWorldGame_RawUpdate(On.RainWorldGame.orig_RawUpdate orig, RainWorldGame self, float dt)
@@ -61,7 +64,7 @@ sealed class Plugin : BaseUnityPlugin
         // Load shaders
         Shaders.LoadShaders();
 
-        // TODO: remix menu
-        Logger.LogDebug("Hello world!");
+        // Bind remix menu
+        MachineConnector.SetRegisteredOI("alduris.jigsaw", new Options());
     }
 }

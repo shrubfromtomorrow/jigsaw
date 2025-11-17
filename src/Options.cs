@@ -16,11 +16,13 @@ namespace Jigsaw
         private static Configurable<DifficultyPreset> preset;
         private static Configurable<int> width;
         private static Configurable<int> height;
+        private static Configurable<bool> jigsawFlash;
         private static Configurable<bool> immediate;
         private static Configurable<bool> doArena;
         private static Configurable<KeyCode> resetKey;
         private static Configurable<KeyCode> shuffleKey;
 
+        public static bool JigsawFlash => jigsawFlash.Value;
         public static bool JigsawImmediately => immediate.Value;
         public static bool DoArena => doArena.Value;
         public static KeyCode ResetKey => resetKey.Value;
@@ -39,6 +41,7 @@ namespace Jigsaw
             width = config.Bind(nameof(width), defaultSize.width, new ConfigAcceptableRange<int>(1, maxSize.width));
             height = config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(1, maxSize.height));
 
+            jigsawFlash = config.Bind(nameof(jigsawFlash), true);
             immediate = config.Bind(nameof(immediate), true);
             doArena = config.Bind(nameof(doArena), true);
 
@@ -66,7 +69,7 @@ namespace Jigsaw
             const float rowHeight = 36f; // must be at least 30
             const float rowHalfHeight = rowHeight / 2;
             const float rectWidth = 300f;
-            const float optionsHeight = rowHeight * 5;
+            const float optionsHeight = rowHeight * 7;
             const float keybindsHeight = rowHeight * 3;
             const float boxMargin = 10f;
 
@@ -118,38 +121,55 @@ namespace Jigsaw
 
 
                 // Options header label
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 4), new Vector2(0f, rowHeight), "OPTIONS", FLabelAlignment.Left, true)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 6), new Vector2(0f, rowHeight), "OPTIONS", FLabelAlignment.Left, true)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
                 
                 // Preset input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 3), new Vector2(0f, rowHeight), "Preset:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 5), new Vector2(0f, rowHeight), "Preset:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                presetInput = new OpResourceSelector2(preset, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 3 + rowHalfHeight - 12f), 160f),
+                presetInput = new OpResourceSelector2(preset, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 5 + rowHalfHeight - 12f), 160f)
+                {
+                    listHeight = (ushort)Enum.GetValues(typeof(DifficultyPreset)).Length
+                },
 
                 // Width input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "Width:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 4), new Vector2(0f, rowHeight), "Width:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                widthInput = new OpUpdown(width, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 2 + rowHalfHeight - 15f), 60f),
+                widthInput = new OpUpdown(width, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 4 + rowHalfHeight - 15f), 60f),
 
                 // Height input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 1), new Vector2(0f, rowHeight), "Height:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 3), new Vector2(0f, rowHeight), "Height:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 1 + rowHalfHeight - 15f), 60f),
+                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 3 + rowHalfHeight - 15f), 60f),
+
+                // Flashing checkbox
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "Flash on hover:", FLabelAlignment.Left, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
+                new OpCheckBox(jigsawFlash, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 2 + rowHalfHeight - 12f)),
 
                 // Immediately checkbox
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 0), new Vector2(0f, rowHeight), "Jigsaw immediately:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 1), new Vector2(0f, rowHeight), "Jigsaw immediately:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                new OpCheckBox(immediate, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 0 + rowHalfHeight - 12f)),
+                new OpCheckBox(immediate, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 1 + rowHalfHeight - 12f)),
+
+                // Arena checkbox
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 0), new Vector2(0f, rowHeight), "Arena too:", FLabelAlignment.Left, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
+                new OpCheckBox(doArena, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 0 + rowHalfHeight - 12f)),
 
 
                 // Keybinds header
@@ -174,12 +194,34 @@ namespace Jigsaw
                 ]);
 
             // Events
-            presetInput.OnValueChanged += (_, _, _) =>
+            presetInput.OnValueChanged += PresetInput_OnValueChanged;
+            widthInput.OnValueChanged += Updown_OnValueChanged;
+            heightInput.OnValueChanged += Updown_OnValueChanged;
+
+            void PresetInput_OnValueChanged(UIconfig self, string value, string oldValue)
             {
-                var (widthVal, heightVal) = DifficultyPresetToSize((DifficultyPreset)Enum.Parse(typeof(DifficultyPreset), presetInput.value));
+                var preset = (DifficultyPreset)Enum.Parse(typeof(DifficultyPreset), presetInput.value);
+                if (preset == DifficultyPreset.Custom) return;
+                var (widthVal, heightVal) = DifficultyPresetToSize(preset);
                 widthInput.valueInt = widthVal;
                 heightInput.valueInt = heightVal;
-            };
+            }
+
+            void Updown_OnValueChanged(UIconfig self, string value, string oldValue)
+            {
+                foreach (DifficultyPreset type in Enum.GetValues(typeof(DifficultyPreset)))
+                {
+                    if (type == DifficultyPreset.Custom) continue;
+
+                    var (width, height) = DifficultyPresetToSize(type);
+                    if (width == widthInput.valueInt && height == heightInput.valueInt)
+                    {
+                        presetInput.value = type.ToString();
+                        return;
+                    }
+                }
+                presetInput.value = DifficultyPreset.Custom.ToString();
+            }
         }
 
         private void LoadFile(string fileName, ref Texture2D tex)

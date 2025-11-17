@@ -21,12 +21,12 @@ namespace Jigsaw
         public Vector2 pos;
         public FSprite sprite;
 
-        public Vector2 NormalizedSize => new(1f / jigsaw.pieces.GetLength(0), 1f / jigsaw.pieces.GetLength(1));
+        public Vector2 NormalizedSize => new(1f / jigsaw.Width, 1f / jigsaw.Height);
         public Vector2 RectSize => new Vector2(Futile.screen.pixelWidth, Futile.screen.pixelHeight) * NormalizedSize;
 
         public bool MouseIntersecting => new Rect(pos - RectSize / 2f, RectSize).Contains((Vector2)Futile.mousePosition);
 
-        public bool CornerPiece => x == 0 || y == 0 || x == jigsaw.pieces.GetLength(0) - 1 || y == jigsaw.pieces.GetLength(1) - 1;
+        public bool CornerPiece => (x == 0 ? 1 : 0) + (y == 0 ? 1 : 0) + (x == jigsaw.Width - 1 ? 1 : 0) + (y == jigsaw.Height - 1 ? 1 : 0) == 2;
         private Vector2 CornerPosititon()
         {
             float vx = Futile.screen.pixelWidth / 2f;
@@ -34,8 +34,8 @@ namespace Jigsaw
 
             if (x == 0) vx = RectSize.x / 2;
             if (y == 0) vy = RectSize.y / 2;
-            if (x == jigsaw.pieces.GetLength(0) - 1) vx = Futile.screen.pixelWidth - RectSize.x / 2;
-            if (y == jigsaw.pieces.GetLength(1) - 1) vy = Futile.screen.pixelHeight - RectSize.y / 2;
+            if (x == jigsaw.Width - 1) vx = Futile.screen.pixelWidth - RectSize.x / 2;
+            if (y == jigsaw.Width - 1) vy = Futile.screen.pixelHeight - RectSize.y / 2;
             
             return new Vector2(vx, vy);
         }
@@ -58,8 +58,8 @@ namespace Jigsaw
             // This will include ourselves
             foreach (var piece in group.pieces)
             {
-                piece.pos = piece.pos + amount;
-                piece.sprite.SetPosition(piece.pos);
+                piece.pos += amount;
+                piece.sprite.SetPosition(piece.pos + Vector2.one * 0.01f);
             }
         }
 
@@ -74,9 +74,9 @@ namespace Jigsaw
 
         private void DropInternal()
         {
-            for (int i = 0; i < jigsaw.pieces.GetLength(0); i++)
+            for (int i = 0; i < jigsaw.Width; i++)
             {
-                for (int j = 0; j < jigsaw.pieces.GetLength(1); j++)
+                for (int j = 0; j < jigsaw.Height; j++)
                 {
                     var other = jigsaw.pieces[i, j];
                     if (!group.Contains(other))

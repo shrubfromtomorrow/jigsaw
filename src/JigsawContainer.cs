@@ -7,28 +7,40 @@ namespace Jigsaw
 {
     public sealed class JigsawContainer
     {
-        public JigsawContainer()
+        public JigsawContainer(bool jigsawImmediately)
         {
-            Regenerate(5, 3);
+            if (jigsawImmediately)
+            {
+                var (width, height) = Options.GetSize();
+                Regenerate(width, height);
+            }
         }
 
+        public int Width => pieces.GetLength(0);
+        public int Height => pieces.GetLength(1);
+        private bool AllConnected => pieces[0, 0].group.Count == Width * Height;
+
         public JigsawPiece[,] pieces = null;
+        private readonly List<JigsawPiece> piecesList = [];
         private FContainer container = null;
         private FSprite backgroundSprite = null;
 
         private JigsawPiece heldPiece = null;
         private Vector2 lastMousePos;
+        private int flashCounter = 0;
 
         public void Regenerate(int width, int height)
         {
             ClearSprites();
 
             pieces = new JigsawPiece[width, height];
+            piecesList.Clear();
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
                     pieces[x, y] = new JigsawPiece(this, x, y);
+                    piecesList.Add(pieces[x, y]);
                 }
             }
 
@@ -75,7 +87,8 @@ namespace Jigsaw
 
         public void Update()
         {
-            Futile.instance._cameraImage.texture.filterMode = FilterMode.Point;
+            //Futile.instance._cameraImage.texture.filterMode = FilterMode.Point;
+            Futile.screen.renderTexture.filterMode = FilterMode.Point;
             container?.MoveToFront();
 
             Vector2 mousePos = Futile.mousePosition;
@@ -83,23 +96,29 @@ namespace Jigsaw
             if (container != null && pieces != null)
             {
                 // Determine/move held piece
-                if (heldPiece == null && Input.GetMouseButtonDown(0))
+                JigsawPiece topPiece = null;
+                if (heldPiece == null)
                 {
-                    var candidatePieces = new List<JigsawPiece>();
-                    for (int x = 0; x < pieces.GetLength(0); x++)
+                    int maxDepth = 0;
+                    for (int x = 0; x < Width; x++)
                     {
-                        for (int y = 0; y < pieces.GetLength(1); y++)
+                        for (int y = 0; y < Height; y++)
                         {
                             if (pieces[x, y].MouseIntersecting)
                             {
-                                candidatePieces.Add(pieces[x, y]);
+                                int depth = container.GetChildIndex(pieces[x, y].sprite);
+                                if (depth > maxDepth)
+                                {
+                                    maxDepth = depth;
+                                    topPiece = pieces[x, y];
+                                }
                             }
                         }
                     }
 
-                    if (candidatePieces.Count > 0)
+                    if (topPiece != null && Input.GetMouseButtonDown(0))
                     {
-                        heldPiece = candidatePieces.OrderByDescending(piece => container.GetChildIndex(piece.sprite)).First();
+                        heldPiece = topPiece;
                     }
                 }
                 else if (heldPiece != null && Input.GetMouseButton(0))
@@ -112,30 +131,57 @@ namespace Jigsaw
                     heldPiece = null;
                 }
 
+                // Update colors
+                flashCounter++;
+                if (Options.JigsawFlash)
+                {
+                    foreach (var piece in pieces)
+                    {
+                        float b;
+                        if (heldPiece != null && heldPiece.group.Contains(piece))
+                        {
+                            b = 0.25f;
+                        }
+                        else if (heldPiece == null && topPiece != null && topPiece.group.Contains(piece))
+                        {
+                            b = (Mathf.Cos(flashCounter / 10f) * -0.5f + 0.5f) * 0.15f + 0.1f * (1f - topPiece.group.Count / (Width * Height));
+                        }
+                        else
+                        {
+                            b = 0;
+                        }
+                        piece.sprite.color = piece.sprite.color with { b = b };
+                    }
+                }
+
                 // Update sprite order (pieces first in list are towards front)
-                List<JigsawPiece> piecesToSort = [.. pieces];
+                List<JigsawPiece> piecesToSort = piecesList;
                 piecesToSort = [.. piecesToSort.OrderByDescending(piece => container.GetChildIndex(piece.sprite))]; // Make sure most recently grabbed is at top
                 piecesToSort = [.. piecesToSort.OrderBy(x => x.group.Contains(heldPiece) ? 0 : 1).ThenBy(x => x.group.Count)];
                 foreach (var piece in piecesToSort)
                 {
                     container.AddChildAtIndex(piece.sprite, 1);
                 }
+
+                if (AllConnected)
+                {
+                    ClearSprites();
+                }
             }
 
             // Set for next frame
             lastMousePos = mousePos;
 
-            // Debug keybinds
-#if DEBUG
-            if (Input.GetKeyDown(KeyCode.F7))
+            // Extra keybinds
+            if (Input.GetKeyDown(Options.ResetKey))
             {
                 ClearSprites();
             }
-            else if (Input.GetKeyDown(KeyCode.F8))
+            else if (Input.GetKeyDown(Options.ShuffleKey))
             {
-                Regenerate(5, 3);
+                var (width, height) = Options.GetSize();
+                Regenerate(width, height);
             }
-#endif
         }
 
         public void Destroy()

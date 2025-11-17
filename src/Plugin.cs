@@ -29,10 +29,7 @@ sealed class Plugin : BaseUnityPlugin
     private void RainWorldGame_ctor(On.RainWorldGame.orig_ctor orig, RainWorldGame self, ProcessManager manager)
     {
         orig(self, manager);
-        if (Options.JigsawImmediately && (!self.IsArenaSession || Options.DoArena))
-        {
-            jigsawCWT.Add(self, new JigsawContainer());
-        }
+        jigsawCWT.Add(self, new JigsawContainer(Options.JigsawImmediately && (!self.IsArenaSession || Options.DoArena)));
     }
 
     private void RainWorldGame_RawUpdate(On.RainWorldGame.orig_RawUpdate orig, RainWorldGame self, float dt)

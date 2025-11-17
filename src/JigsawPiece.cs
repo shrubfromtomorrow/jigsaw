@@ -26,7 +26,8 @@ namespace Jigsaw
 
         public bool MouseIntersecting => new Rect(pos - RectSize / 2f, RectSize).Contains((Vector2)Futile.mousePosition);
 
-        public bool CornerPiece => (x == 0 ? 1 : 0) + (y == 0 ? 1 : 0) + (x == jigsaw.Width - 1 ? 1 : 0) + (y == jigsaw.Height - 1 ? 1 : 0) == 2;
+        public bool CornerPiece => (x == 0 && y == 0) || (x == 0 && y == jigsaw.Height - 1)
+            || (x == jigsaw.Width - 1 && y == 0) || (x == jigsaw.Width - 1 && y == jigsaw.Height - 1);
         private Vector2 CornerPosititon()
         {
             float vx = Futile.screen.pixelWidth / 2f;
@@ -35,7 +36,7 @@ namespace Jigsaw
             if (x == 0) vx = RectSize.x / 2;
             if (y == 0) vy = RectSize.y / 2;
             if (x == jigsaw.Width - 1) vx = Futile.screen.pixelWidth - RectSize.x / 2;
-            if (y == jigsaw.Width - 1) vy = Futile.screen.pixelHeight - RectSize.y / 2;
+            if (y == jigsaw.Height - 1) vy = Futile.screen.pixelHeight - RectSize.y / 2;
             
             return new Vector2(vx, vy);
         }

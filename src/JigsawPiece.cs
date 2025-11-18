@@ -28,7 +28,7 @@ namespace Jigsaw
 
         public bool CornerPiece => (x == 0 && y == 0) || (x == 0 && y == jigsaw.Height - 1)
             || (x == jigsaw.Width - 1 && y == 0) || (x == jigsaw.Width - 1 && y == jigsaw.Height - 1);
-        private Vector2 CornerPosititon()
+        private Vector2 CornerPosition()
         {
             float vx = Futile.screen.pixelWidth / 2f;
             float vy = Futile.screen.pixelHeight / 2f;
@@ -67,9 +67,16 @@ namespace Jigsaw
         public void Drop()
         {
             // This will include ourselves
-            foreach (var piece in group.pieces)
+            List<JigsawPiece> piecesTemp = [.. group.pieces];
+            foreach (var piece in piecesTemp)
             {
                 piece.DropInternal();
+            }
+
+            // Snap to corners if needed
+            foreach (var piece in group.pieces)
+            {
+                piece.CornerSnap();
             }
         }
 
@@ -102,10 +109,7 @@ namespace Jigsaw
                 }
             }
 
-            if (CornerPiece && Vector2.Distance(pos, CornerPosititon()) < SNAP_DISTANCE)
-            {
-                Move(CornerPosititon() - pos);
-            }
+            CornerSnap();
         }
 
         private void Merge(Vector2 idealMove, JigsawPiece otherPiece, Group otherGroup)
@@ -119,6 +123,15 @@ namespace Jigsaw
             {
                 otherPiece.Move(-idealMove);
                 group.Merge(otherGroup);
+            }
+            
+        }
+
+        private void CornerSnap()
+        {
+            if (CornerPiece && Vector2.Distance(pos, CornerPosition()) < SNAP_DISTANCE)
+            {
+                Move(CornerPosition() - pos);
             }
         }
 

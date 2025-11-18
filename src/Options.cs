@@ -241,6 +241,7 @@ namespace Jigsaw
             Medium,
             Hard,
             Gigantic,
+            Enormous,
             MAX
         }
 
@@ -254,6 +255,7 @@ namespace Jigsaw
                 DifficultyPreset.Medium => (7, 4),
                 DifficultyPreset.Hard => (9, 5),
                 DifficultyPreset.Gigantic => (13, 7),
+                DifficultyPreset.Enormous => (20, 11),
                 DifficultyPreset.MAX => (68, 38),
                 _ => throw new ArgumentException(nameof(preset)),
             };

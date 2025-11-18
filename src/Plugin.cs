@@ -39,6 +39,7 @@ sealed class Plugin : BaseUnityPlugin
         {
             jigsaw.Update();
         }
+        CompletionEffect.UpdateEffects();
     }
 
     private void RainWorldGame_ShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)

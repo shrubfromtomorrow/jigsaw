@@ -137,6 +137,7 @@ Shader "Alduris/PuzzlePiece"
 
                     float2 uv = i.uv.xy * 2.0 - 0.5;
                     half2 grabPos = (uv + half2(x, y)) / half2(w, h);
+                    grabPos = (floor(grabPos * _ScreenParams.xy) + 0.5) / _ScreenParams.xy;
 
                     // Calculate teeth intersection
                     PieceData teethData = getDataFor(x, y);

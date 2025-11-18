@@ -1,9 +1,9 @@
 ﻿{
   "id": "alduris.jigsaw",
-  "name": "Puzzle World",
+  "name": "Jigsaw World",
   "version": "1.0",
   "authors": "Alduris",
-  "description": "The game is made of puzzles. You must solve it while you play.",
+  "description": "The game is now a jigsaw puzzle. You must solve it while you play. (Configurable)",
   "tags": [],
   "requirements": [],
   "requirements_names": [],

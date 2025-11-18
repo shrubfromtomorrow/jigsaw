@@ -10,7 +10,7 @@ using System.Security.Permissions;
 
 namespace Jigsaw;
 
-[BepInPlugin("alduris.jigsaw", "Puzzle World", "1.0")]
+[BepInPlugin("alduris.jigsaw", "Jigsaw World", "1.0")]
 sealed class Plugin : BaseUnityPlugin
 {
     public static new ManualLogSource Logger;

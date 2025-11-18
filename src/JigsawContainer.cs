@@ -49,6 +49,14 @@ namespace Jigsaw
             InitiateSprites();
         }
 
+        public void Regenerate(int width, int height, int seed)
+        {
+            var state = Random.state;
+            Random.InitState(seed);
+            Regenerate(width, height);
+            Random.state = state;
+        }
+
         private void ClearSprites()
         {
             if (container != null)

@@ -32,7 +32,7 @@ namespace Jigsaw
         {
             Instance = this;
 
-            var defaultDifficulty = DifficultyPreset.Easy;
+            var defaultDifficulty = DifficultyPreset.Small;
             var defaultSize = DifficultyPresetToSize(defaultDifficulty);
             var maxSize = DifficultyPresetToSize(DifficultyPreset.MAX);
 
@@ -239,9 +239,9 @@ namespace Jigsaw
         {
             Custom,
             Baby,
-            Easy,
+            Small,
             Medium,
-            Hard,
+            Large,
             Gigantic,
             Enormous,
             MAX
@@ -253,9 +253,9 @@ namespace Jigsaw
             {
                 DifficultyPreset.Custom => (width.Value, height.Value),
                 DifficultyPreset.Baby => (3, 2),
-                DifficultyPreset.Easy => (5, 3),
+                DifficultyPreset.Small => (5, 3),
                 DifficultyPreset.Medium => (7, 4),
-                DifficultyPreset.Hard => (9, 5),
+                DifficultyPreset.Large => (9, 5),
                 DifficultyPreset.Gigantic => (13, 7),
                 DifficultyPreset.Enormous => (20, 11),
                 DifficultyPreset.MAX => (68, 38),

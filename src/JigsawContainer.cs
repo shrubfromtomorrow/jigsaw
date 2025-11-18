@@ -174,7 +174,7 @@ namespace Jigsaw
             lastMousePos = mousePos;
 
             // Extra keybinds
-            if (Input.GetKeyDown(Options.ResetKey))
+            if (Input.GetKeyDown(Options.ResetKey) && container != null)
             {
                 ClearSprites();
             }

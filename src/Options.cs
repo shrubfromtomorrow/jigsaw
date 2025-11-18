@@ -38,8 +38,8 @@ namespace Jigsaw
 
             preset = config.Bind(nameof(preset), defaultDifficulty);
 
-            width = config.Bind(nameof(width), defaultSize.width, new ConfigAcceptableRange<int>(1, maxSize.width));
-            height = config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(1, maxSize.height));
+            width = config.Bind(nameof(width), defaultSize.width, new ConfigAcceptableRange<int>(2, maxSize.width));
+            height = config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(2, maxSize.height));
 
             jigsawFlash = config.Bind(nameof(jigsawFlash), true);
             immediate = config.Bind(nameof(immediate), true);
@@ -70,7 +70,7 @@ namespace Jigsaw
             const float rowHalfHeight = rowHeight / 2;
             const float rectWidth = 300f;
             const float optionsHeight = rowHeight * 7;
-            const float keybindsHeight = rowHeight * 3;
+            const float keybindsHeight = rowHeight * 2;
             const float boxMargin = 10f;
 
             float rectStartX = menuHalfSize - rectWidth / 2;
@@ -114,41 +114,44 @@ namespace Jigsaw
             // Add everything else, plus save some inputs
             OpResourceSelector presetInput;
             OpUpdown widthInput, heightInput;
+            OpLabel sizeLabel;
             tab.AddItems([
                 titleLabel,
                 rectOptions,
                 rectKeybinds,
 
 
-                // Options header label
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 6), new Vector2(0f, rowHeight), "OPTIONS", FLabelAlignment.Left, true)
-                {
-                    verticalAlignment = OpLabel.LabelVAlignment.Center
-                },
+                // Options
                 
                 // Preset input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 5), new Vector2(0f, rowHeight), "Preset:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 6), new Vector2(0f, rowHeight), "Preset:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                presetInput = new OpResourceSelector2(preset, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 5 + rowHalfHeight - 12f), 160f)
+                presetInput = new OpResourceSelector2(preset, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 6 + rowHalfHeight - 12f), 160f)
                 {
                     listHeight = (ushort)Enum.GetValues(typeof(DifficultyPreset)).Length
                 },
 
                 // Width input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 4), new Vector2(0f, rowHeight), "Width:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 5), new Vector2(0f, rowHeight), "Width:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                widthInput = new OpUpdown(width, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 4 + rowHalfHeight - 15f), 60f),
+                widthInput = new OpUpdown(width, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 5 + rowHalfHeight - 15f), 60f),
 
                 // Height input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 3), new Vector2(0f, rowHeight), "Height:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 4), new Vector2(0f, rowHeight), "Height:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 3 + rowHalfHeight - 15f), 60f),
+                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 4 + rowHalfHeight - 15f), 60f),
+
+                // Size label
+                sizeLabel = new OpLabel(new Vector2(rectStartX + rectWidth / 2, optionsStartY + rowHeight * 3), new Vector2(0f, 40f), $"{width.Value * height.Value} pieces", FLabelAlignment.Center, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
 
                 // Flashing checkbox
                 new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "Flash on hover:", FLabelAlignment.Left, false)
@@ -172,11 +175,7 @@ namespace Jigsaw
                 new OpCheckBox(doArena, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 0 + rowHalfHeight - 12f)),
 
 
-                // Keybinds header
-                new OpLabel(new Vector2(rectStartX + 10f, keybindsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "KEYBINDS", FLabelAlignment.Left, true)
-                {
-                    verticalAlignment = OpLabel.LabelVAlignment.Center
-                },
+                // Keybinds
 
                 // Reset keybind
                 new OpLabel(new Vector2(rectStartX + 10f, keybindsStartY + rowHeight * 1), new Vector2(0f, 40f), "Reset puzzle:", FLabelAlignment.Left, false)
@@ -205,6 +204,7 @@ namespace Jigsaw
                 var (widthVal, heightVal) = DifficultyPresetToSize(preset);
                 widthInput.valueInt = widthVal;
                 heightInput.valueInt = heightVal;
+                sizeLabel.text = $"{widthVal * heightVal} pieces";
             }
 
             void Updown_OnValueChanged(UIconfig self, string value, string oldValue)
@@ -217,10 +217,12 @@ namespace Jigsaw
                     if (width == widthInput.valueInt && height == heightInput.valueInt)
                     {
                         presetInput.value = type.ToString();
+                        sizeLabel.text = $"{width * height} pieces";
                         return;
                     }
                 }
                 presetInput.value = DifficultyPreset.Custom.ToString();
+                sizeLabel.text = $"{widthInput.valueInt * heightInput.valueInt} pieces";
             }
         }
 

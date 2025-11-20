@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Jigsaw
 {
-    internal class Options : OptionInterface
+    public class Options : OptionInterface
     {
         public static Options Instance { get; private set; }
 
@@ -17,16 +17,18 @@ namespace Jigsaw
         private static Configurable<int> width;
         private static Configurable<int> height;
         private static Configurable<bool> jigsawFlash;
-        private static Configurable<bool> immediate;
         private static Configurable<bool> doArena;
         private static Configurable<KeyCode> resetKey;
         private static Configurable<KeyCode> shuffleKey;
+        private static Configurable<PlayStyle> playStyle;
+        private static Configurable<float> playStyleChance;
 
         public static bool JigsawFlash => jigsawFlash.Value;
-        public static bool JigsawImmediately => immediate.Value;
         public static bool DoArena => doArena.Value;
         public static KeyCode ResetKey => resetKey.Value;
         public static KeyCode ShuffleKey => shuffleKey.Value;
+        public static PlayStyle SelectedPlayStyle => playStyle.Value;
+        public static float PlayStyleChanceModifier => playStyleChance.Value;
 
         public Options()
         {
@@ -42,11 +44,13 @@ namespace Jigsaw
             height = config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(2, maxSize.height));
 
             jigsawFlash = config.Bind(nameof(jigsawFlash), true);
-            immediate = config.Bind(nameof(immediate), true);
             doArena = config.Bind(nameof(doArena), true);
 
             resetKey = config.Bind(nameof(resetKey), KeyCode.F7);
             shuffleKey = config.Bind(nameof(shuffleKey), KeyCode.F8);
+
+            playStyle = config.Bind(nameof(playStyle), PlayStyle.LetMePuzzle);
+            playStyleChance = config.Bind(nameof(playStyleChance), 0.5f, new ConfigAcceptableRange<float>(0f, 1f));
         }
 
         public override void Initialize()
@@ -112,9 +116,10 @@ namespace Jigsaw
             }*/
 
             // Add everything else, plus save some inputs
-            OpResourceSelector presetInput;
+            OpResourceSelector presetInput, playStyleInput;
             OpUpdown widthInput, heightInput;
-            OpLabel sizeLabel;
+            OpLabel sizeLabel, noChanceLabel;
+            OpFloatSlider playStyleSlider;
             tab.AddItems([
                 titleLabel,
                 rectOptions,
@@ -133,39 +138,55 @@ namespace Jigsaw
                     listHeight = (ushort)Enum.GetValues(typeof(DifficultyPreset)).Length
                 },
 
-                // Width input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 5), new Vector2(0f, rowHeight), "Width:", FLabelAlignment.Left, false)
+                // Size inputs
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 5), new Vector2(0f, rowHeight), "Size:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                widthInput = new OpUpdown(width, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 5 + rowHalfHeight - 15f), 60f),
-
-                // Height input
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 4), new Vector2(0f, rowHeight), "Height:", FLabelAlignment.Left, false)
+                widthInput = new OpUpdown(width, new Vector2(rectEndX - 140f, optionsStartY + rowHeight * 5 + rowHalfHeight - 15f), 60f),
+                new OpLabel(new Vector2(rectEndX - 80f, optionsStartY + rowHeight * 5), new Vector2(20f, rowHeight), "x", FLabelAlignment.Center, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 4 + rowHalfHeight - 15f), 60f),
+                heightInput = new OpUpdown(height, new Vector2(rectEndX - 60f, optionsStartY + rowHeight * 5 + rowHalfHeight - 15f), 60f),
 
                 // Size label
-                sizeLabel = new OpLabel(new Vector2(rectStartX + rectWidth / 2, optionsStartY + rowHeight * 3), new Vector2(0f, 40f), $"{width.Value * height.Value} pieces", FLabelAlignment.Center, false)
+                sizeLabel = new OpLabel(new Vector2(rectStartX, optionsStartY + rowHeight * 4), new Vector2(rectWidth, 40f), $"{width.Value * height.Value} pieces", FLabelAlignment.Center, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
+
+
+                // Play style
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 3), new Vector2(0f, rowHeight), "Play style:", FLabelAlignment.Left, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
+                playStyleInput = new OpResourceSelector2(playStyle, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 3 + rowHalfHeight - 12f), 160f)
+                {
+                    description = PlayStyleDescription(playStyle.Value)
+                },
+
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "Chance modifier:", FLabelAlignment.Left, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
+                playStyleSlider = new OpFloatSlider(playStyleChance, new Vector2(rectEndX - 160f, optionsStartY + rowHeight * 2 + rowHalfHeight - 15f), 160, 2, false)
+                {
+                    _dNum = 2,
+                },
+                noChanceLabel = new OpLabel(new Vector2(rectEndX - LabelTest.GetWidth("[does not apply]"), optionsStartY + rowHeight * 2), new Vector2(0f, 40f), "[does not apply]", FLabelAlignment.Left, false)
+                {
+                    verticalAlignment = OpLabel.LabelVAlignment.Center
+                },
+
 
                 // Flashing checkbox
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 2), new Vector2(0f, rowHeight), "Flash on hover:", FLabelAlignment.Left, false)
+                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 1), new Vector2(0f, rowHeight), "Flash on hover:", FLabelAlignment.Left, false)
                 {
                     verticalAlignment = OpLabel.LabelVAlignment.Center
                 },
-                new OpCheckBox(jigsawFlash, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 2 + rowHalfHeight - 12f)),
-
-                // Immediately checkbox
-                new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 1), new Vector2(0f, rowHeight), "Jigsaw immediately:", FLabelAlignment.Left, false)
-                {
-                    verticalAlignment = OpLabel.LabelVAlignment.Center
-                },
-                new OpCheckBox(immediate, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 1 + rowHalfHeight - 12f)),
+                new OpCheckBox(jigsawFlash, new Vector2(rectEndX - 24f, optionsStartY + rowHeight * 1 + rowHalfHeight - 12f)),
 
                 // Arena checkbox
                 new OpLabel(new Vector2(rectStartX + 10f, optionsStartY + rowHeight * 0), new Vector2(0f, rowHeight), "Arena too:", FLabelAlignment.Left, false)
@@ -192,10 +213,21 @@ namespace Jigsaw
                 new OpKeyBinder(shuffleKey, new Vector2(rectEndX - 60f, keybindsStartY + rowHeight * 0 + rowHalfHeight - 15f), new Vector2(60f, 30f), true),
                 ]);
 
+            // Update slider because it breaks when greyed out for some reason
+            if (PlayStyleUsesRandomChance(playStyle.Value))
+            {
+                tab.RemoveItems(noChanceLabel);
+            }
+            else
+            {
+                tab.RemoveItems(playStyleSlider);
+            }
+
             // Events
             presetInput.OnValueChanged += PresetInput_OnValueChanged;
             widthInput.OnValueChanged += Updown_OnValueChanged;
             heightInput.OnValueChanged += Updown_OnValueChanged;
+            playStyleInput.OnValueChanged += PlayStyleInput_OnValueChanged;
 
             void PresetInput_OnValueChanged(UIconfig self, string value, string oldValue)
             {
@@ -223,6 +255,23 @@ namespace Jigsaw
                 }
                 presetInput.value = DifficultyPreset.Custom.ToString();
                 sizeLabel.text = $"{widthInput.valueInt * heightInput.valueInt} pieces";
+            }
+
+            void PlayStyleInput_OnValueChanged(UIconfig self, string value, string oldValue)
+            {
+                var playStyle = (PlayStyle)Enum.Parse (typeof(PlayStyle), playStyleInput.value);
+                playStyleInput.description = PlayStyleDescription(playStyle);
+                
+                if (PlayStyleUsesRandomChance(playStyle))
+                {
+                    tab.RemoveItems(noChanceLabel);
+                    tab.AddItems(playStyleSlider);
+                }
+                else
+                {
+                    tab.RemoveItems(playStyleSlider);
+                    tab.AddItems(noChanceLabel);
+                }
             }
         }
 
@@ -252,13 +301,13 @@ namespace Jigsaw
             return preset switch
             {
                 DifficultyPreset.Custom => (width.Value, height.Value),
-                DifficultyPreset.Baby => (3, 2),
-                DifficultyPreset.Small => (5, 3),
-                DifficultyPreset.Medium => (7, 4),
-                DifficultyPreset.Large => (9, 5),
-                DifficultyPreset.Gigantic => (13, 7),
-                DifficultyPreset.Enormous => (20, 11),
-                DifficultyPreset.MAX => (68, 38),
+                DifficultyPreset.Baby => (3, 2),       // 6 pieces
+                DifficultyPreset.Small => (5, 3),      // 15 pieces
+                DifficultyPreset.Medium => (7, 4),     // 28 pieces
+                DifficultyPreset.Large => (9, 5),      // 45 pieces (~50)
+                DifficultyPreset.Gigantic => (13, 7),  // 91 pieces (~100)
+                DifficultyPreset.Enormous => (20, 11), // 220 pieces (~200)
+                DifficultyPreset.MAX => (68, 38),      // 2584 pieces (size where each piece's main body is roughly 20x20)
                 _ => throw new ArgumentException(nameof(preset)),
             };
         }
@@ -266,13 +315,30 @@ namespace Jigsaw
         public static (int width, int height) GetSize() => DifficultyPresetToSize(preset.Value);
 
 
-        // todo: add this as a feature?
         public enum PlayStyle
         {
             LetMePuzzle,
             PuzzlePerCycle,
-            PuzzlePerRoom,
+            PuzzlePerRoomPerCycle,
+            PuzzlePerRoomPerSession,
+            PuzzlePerRoomSometimes,
             PuzzleAtRandom
         }
+
+        public static string PlayStyleDescription(PlayStyle style)
+        {
+            return style switch
+            {
+                PlayStyle.LetMePuzzle => "A non-obtrusive button in the top left of the screen, or keybind-activated.",
+                PlayStyle.PuzzlePerCycle => "At some point during the cycle, the game will launch a surprise puzzle.",
+                PlayStyle.PuzzlePerRoomPerCycle => "A puzzle will appear per room that you have not solved in the current cycle. Leaving an unfinished room and coming back re-randomizes the puzzle.",
+                PlayStyle.PuzzlePerRoomPerSession => "A puzzle will appear per room that you have not solved in the current game instance. Leaving an unfinished room and coming back re-randomizes the puzzle.",
+                PlayStyle.PuzzlePerRoomSometimes => "A puzzle will sometimes appear in a room on a given cycle. Leaving an unfinished room and coming back re-randomizes the puzzle.",
+                PlayStyle.PuzzleAtRandom => "Randomly while there isn't an active puzzle, a puzzle will spawn.",
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        public static bool PlayStyleUsesRandomChance(PlayStyle style) => style == PlayStyle.PuzzleAtRandom || style == PlayStyle.PuzzlePerRoomSometimes;
     }
 }

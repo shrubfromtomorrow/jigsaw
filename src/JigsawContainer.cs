@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Jigsaw.PlayStyles;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,31 +9,30 @@ namespace Jigsaw
 {
     public sealed class JigsawContainer
     {
-        public JigsawContainer(bool jigsawImmediately)
+        public JigsawContainer(RainWorldGame game)
         {
-            if (jigsawImmediately)
-            {
-                var (width, height) = Options.GetSize();
-                Regenerate(width, height);
-            }
+            playStyleController = PlayStyleController.GetPlayStyleControllerFor(Options.SelectedPlayStyle, this, game);
         }
 
-        public int Width => pieces.GetLength(0);
-        public int Height => pieces.GetLength(1);
-        private bool AllConnected => pieces[0, 0].group.Count == Width * Height;
+        public int Width => pieces?.GetLength(0) ?? 0;
+        public int Height => pieces?.GetLength(1) ?? 0;
+        public bool AllConnected => pieces == null || (pieces[0, 0].group.Count == Width * Height && heldPiece == null);
 
         public JigsawPiece[,] pieces = null;
         private readonly List<JigsawPiece> piecesList = [];
-        private FContainer container = null;
+        public FContainer container = null;
         private FSprite backgroundSprite = null;
+        private readonly PlayStyleController playStyleController;
 
         private JigsawPiece heldPiece = null;
         private Vector2 lastMousePos;
         private int flashCounter = 0;
 
-        public void Regenerate(int width, int height)
+        public void Regenerate()
         {
             ClearSprites();
+
+            var (width, height) = Options.GetSize();
 
             pieces = new JigsawPiece[width, height];
             piecesList.Clear();
@@ -49,11 +50,11 @@ namespace Jigsaw
             InitiateSprites();
         }
 
-        public void Regenerate(int width, int height, int seed)
+        public void Regenerate(int seed)
         {
             var state = Random.state;
             Random.InitState(seed);
-            Regenerate(width, height);
+            Regenerate();
             Random.state = state;
         }
 
@@ -163,9 +164,10 @@ namespace Jigsaw
                 }
 
                 // Update sprite order (pieces first in list are towards front)
-                List<JigsawPiece> piecesToSort = piecesList;
-                piecesToSort = [.. piecesToSort.OrderByDescending(piece => container.GetChildIndex(piece.sprite))]; // Make sure most recently grabbed is at top
-                piecesToSort = [.. piecesToSort.OrderBy(x => x.group.Contains(heldPiece) ? 0 : 1).ThenBy(x => x.group.Count)];
+                var piecesToSort = piecesList
+                    .OrderByDescending(piece => container.GetChildIndex(piece.sprite)) // Make sure most recently grabbed is at top
+                    .OrderBy(x => x.group.Contains(heldPiece) ? 0 : 1) // Held pieces above all
+                    .ThenBy(x => x.group.Count); // Largest groups at back so as to not obstruct smaller groups
                 foreach (var piece in piecesToSort)
                 {
                     container.AddChildAtIndex(piece.sprite, 1);
@@ -173,8 +175,7 @@ namespace Jigsaw
 
                 if (AllConnected)
                 {
-                    CompletionEffect.Yippee();
-                    ClearSprites();
+                    Clear(true);
                 }
             }
 
@@ -184,18 +185,41 @@ namespace Jigsaw
             // Extra keybinds
             if (Input.GetKeyDown(Options.ResetKey) && container != null)
             {
-                ClearSprites();
+                Clear(false);
             }
             else if (Input.GetKeyDown(Options.ShuffleKey))
             {
-                var (width, height) = Options.GetSize();
-                Regenerate(width, height);
+                Regenerate();
             }
+#if DEBUG
+            else if (Input.GetKeyDown(KeyCode.F9))
+            {
+                CompletionEffect.Yippee();
+            }
+#endif
+
+            // Update controller
+            playStyleController.Update();
+        }
+
+        public void Clear(bool doEffect)
+        {
+            ClearSprites();
+            OnClearedPuzzle?.Invoke();
+            if (doEffect)
+            {
+                CompletionEffect.Yippee();
+            }
+            pieces = null;
+            piecesList.Clear();
         }
 
         public void Destroy()
         {
             ClearSprites();
+            playStyleController.Destroy();
         }
+
+        public event Action OnClearedPuzzle;
     }
 }

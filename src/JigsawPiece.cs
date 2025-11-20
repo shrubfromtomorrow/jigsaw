@@ -35,10 +35,10 @@ namespace Jigsaw
 
             if (x == 0) vx = RectSize.x / 2;
             if (y == 0) vy = RectSize.y / 2;
-            if (x == jigsaw.Width - 1) vx = Futile.screen.pixelWidth - RectSize.x / 2;
-            if (y == jigsaw.Height - 1) vy = Futile.screen.pixelHeight - RectSize.y / 2;
+            if (x == jigsaw.Width - 1) vx = RectSize.x * (jigsaw.Width - 0.5f);
+            if (y == jigsaw.Height - 1) vy = RectSize.y * (jigsaw.Height - 0.5f);
             
-            return new Vector2(vx, vy);
+            return new Vector2(vx, vy - 1f); // I'm not sure why but it keeps being 1 pixel offset vertically
         }
 
         public void InitializeSprite()

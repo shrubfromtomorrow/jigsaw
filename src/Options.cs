@@ -38,19 +38,19 @@ namespace Jigsaw
             var defaultSize = DifficultyPresetToSize(defaultDifficulty);
             var maxSize = DifficultyPresetToSize(DifficultyPreset.MAX);
 
-            preset = config.Bind(nameof(preset), defaultDifficulty);
+            preset ??= config.Bind(nameof(preset), defaultDifficulty);
 
-            width = config.Bind(nameof(width), defaultSize.width, new ConfigAcceptableRange<int>(2, maxSize.width));
-            height = config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(2, maxSize.height));
+            width ??= config.Bind(nameof(width), defaultSize.width, new ConfigAcceptableRange<int>(2, maxSize.width));
+            height ??= config.Bind(nameof(height), defaultSize.height, new ConfigAcceptableRange<int>(2, maxSize.height));
 
-            jigsawFlash = config.Bind(nameof(jigsawFlash), true);
-            doArena = config.Bind(nameof(doArena), true);
+            jigsawFlash ??= config.Bind(nameof(jigsawFlash), true);
+            doArena ??= config.Bind(nameof(doArena), true);
 
-            resetKey = config.Bind(nameof(resetKey), KeyCode.F7);
-            shuffleKey = config.Bind(nameof(shuffleKey), KeyCode.F8);
+            resetKey ??= config.Bind(nameof(resetKey), KeyCode.F7);
+            shuffleKey ??= config.Bind(nameof(shuffleKey), KeyCode.F8);
 
-            playStyle = config.Bind(nameof(playStyle), PlayStyle.LetMePuzzle);
-            playStyleChance = config.Bind(nameof(playStyleChance), 0.5f, new ConfigAcceptableRange<float>(0f, 1f));
+            playStyle ??= config.Bind(nameof(playStyle), PlayStyle.LetMePuzzle);
+            playStyleChance ??= config.Bind(nameof(playStyleChance), 0.5f, new ConfigAcceptableRange<float>(0f, 1f));
         }
 
         public override void Initialize()
@@ -216,11 +216,11 @@ namespace Jigsaw
             // Update slider because it breaks when greyed out for some reason
             if (PlayStyleUsesRandomChance(playStyle.Value))
             {
-                tab.RemoveItems(noChanceLabel);
+                noChanceLabel.Hide();
             }
             else
             {
-                tab.RemoveItems(playStyleSlider);
+                playStyleSlider.Hide();
             }
 
             // Events
@@ -264,13 +264,13 @@ namespace Jigsaw
                 
                 if (PlayStyleUsesRandomChance(playStyle))
                 {
-                    tab.RemoveItems(noChanceLabel);
-                    tab.AddItems(playStyleSlider);
+                    noChanceLabel.Hide();
+                    playStyleSlider.Show();
                 }
                 else
                 {
-                    tab.RemoveItems(playStyleSlider);
-                    tab.AddItems(noChanceLabel);
+                    playStyleSlider.Hide();
+                    noChanceLabel.Show();
                 }
             }
         }

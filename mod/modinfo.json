@@ -1,10 +1,16 @@
-﻿{
+{
   "id": "alduris.jigsaw",
   "name": "Jigsaw World",
-  "version": "1.0",
+  "version": "1.0.1",
   "authors": "Alduris",
   "description": "The game is now a jigsaw puzzle. You must solve it while you play. (Configurable)",
-  "tags": [],
+  "tags": [
+    "Game Modes",
+    "Base",
+    "Downpour",
+    "Watcher",
+    "Game Mechanics"
+  ],
   "requirements": [],
   "requirements_names": [],
   "checksum_override_version": true

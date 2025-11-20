@@ -5,7 +5,7 @@ namespace Jigsaw.PlayStyles
     internal class PuzzlePerCycleController : PlayStyleController
     {
         private readonly int puzzleTime;
-        private readonly bool activated = false;
+        private bool activated = false;
 
         public PuzzlePerCycleController(JigsawContainer jigsaw, RainWorldGame game) : base(jigsaw, game)
         {
@@ -17,6 +17,7 @@ namespace Jigsaw.PlayStyles
             if (!activated && _game.world.rainCycle.timer >= puzzleTime)
             {
                 _jigsaw.Regenerate();
+                activated = true;
             }
         }
     }

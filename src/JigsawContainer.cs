@@ -26,7 +26,7 @@ namespace Jigsaw
 
         private JigsawPiece heldPiece = null;
         private Vector2 lastMousePos;
-        private int flashCounter = 0;
+        private float flashCounter = 0;
 
         public void Regenerate()
         {
@@ -94,7 +94,7 @@ namespace Jigsaw
             }
         }
 
-        public void Update()
+        public void Update(float dt)
         {
             //Futile.instance._cameraImage.texture.filterMode = FilterMode.Point;
             Futile.screen.renderTexture.filterMode = FilterMode.Point;
@@ -141,7 +141,7 @@ namespace Jigsaw
                 }
 
                 // Update colors
-                flashCounter++;
+                flashCounter += dt * 60f;
                 if (Options.JigsawFlash)
                 {
                     foreach (var piece in pieces)

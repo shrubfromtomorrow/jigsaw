@@ -37,7 +37,7 @@ sealed class Plugin : BaseUnityPlugin
         orig(self, dt);
         if (jigsawCWT.TryGetValue(self, out var jigsaw))
         {
-            jigsaw.Update(dt);
+            jigsaw.Update();
         }
         CompletionEffect.UpdateEffects();
     }
